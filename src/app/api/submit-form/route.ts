@@ -106,9 +106,7 @@ export async function POST(req: Request) {
         new Date().toISOString(),
         preprocessValue(name),
         preprocessValue(email),
-        preprocess
-
-Value(phoneNumber),
+        preprocessValue(phoneNumber),
         ...processedData
       ],
     ];
