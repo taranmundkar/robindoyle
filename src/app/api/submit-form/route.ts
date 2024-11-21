@@ -122,7 +122,6 @@ export async function POST(req: Request) {
       requestBody: { values },
     });
 
-    console.log('Google Sheets API response:', JSON.stringify(response.data, null, 2));
     console.log(`Data successfully appended to Google Sheet for ${userType}`);
     return NextResponse.json({ success: true, data: response.data });
 
