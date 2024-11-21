@@ -221,7 +221,8 @@ export default function LandingPage() {
   }
 
   const handleFinalSubmit = async () => {
-    console.log('Form submitted:', { name, email, phoneNumber, userType, ...answers })
+    const formData = { name, email, phoneNumber, userType, ...answers }
+    console.log('Submitting form data:', formData)
     
     try {
       const response = await fetch('/api/submit-form', {
@@ -229,16 +230,11 @@ export default function LandingPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name,
-          email,
-          phoneNumber,
-          userType,
-          ...answers,
-        }),
+        body: JSON.stringify(formData),
       })
 
       const data = await response.json()
+      console.log('Response from server:', data)
 
       if (response.ok && data.success) {
         setIsFinalSubmitted(true)
