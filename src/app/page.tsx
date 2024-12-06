@@ -201,7 +201,6 @@ export default function LandingPage() {
     setAnswers({})
     setOverallProgress(0)
     setSelectedAnswers([])
-    window.fbq('track', 'Lead', { content_name: type });
   }
 
   const handleAnswer = (answer: string) => {
@@ -246,7 +245,6 @@ export default function LandingPage() {
     e.preventDefault()
     if (consent) {
       setIsVerifying(true)
-      window.fbq('track', 'SubmitApplication');
     } else {
       alert('Please provide consent to submit your information.')
     }
@@ -279,10 +277,6 @@ export default function LandingPage() {
 
       if (response.ok && data.success) {
         setIsFinalSubmitted(true)
-        window.fbq('track', 'CompleteRegistration', {
-          content_name: userType,
-          status: true
-        });
       } else {
         throw new Error(data.error || 'Unknown error occurred')
       }
