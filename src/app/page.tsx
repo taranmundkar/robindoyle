@@ -1,8 +1,9 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js'
+import Script from 'next/script'
 
 type Question = {
   id: string;
@@ -10,6 +11,23 @@ type Question = {
   options?: string[];
   type?: string;
   multiple?: boolean;
+}
+
+// Define proper types for Facebook Pixel
+type FacebookPixelEvent = 'init' | 'track' | 'trackCustom';
+interface FacebookPixel {
+  (event: FacebookPixelEvent, eventName: string, params?: Record<string, unknown>): void;
+  q?: unknown[];
+  loaded?: boolean;
+  version?: string;
+  push?: (...args: unknown[]) => void;
+}
+
+declare global {
+  interface Window {
+    fbq: FacebookPixel;
+    _fbq: FacebookPixel;
+  }
 }
 
 export default function LandingPage() {
@@ -28,6 +46,27 @@ export default function LandingPage() {
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [phoneError, setPhoneError] = useState('')
+
+  useEffect(() => {
+    // Initialize Facebook Pixel
+    if (typeof window !== 'undefined') {
+      window.fbq = function(...args: unknown[]) {
+        if (!window.fbq.q) {
+          window.fbq.q = [];
+        }
+        window.fbq.q.push(args);
+      } as FacebookPixel;
+      
+      if (!window._fbq) {
+        window._fbq = window.fbq;
+      }
+      
+      window.fbq.loaded = true;
+      window.fbq.version = '2.0';
+      window.fbq('init', '3367216933422950');
+      window.fbq('track', 'PageView');
+    }
+  }, []);
 
   const buyQuestions: Question[] = [
     {
@@ -162,6 +201,7 @@ export default function LandingPage() {
     setAnswers({})
     setOverallProgress(0)
     setSelectedAnswers([])
+    window.fbq('track', 'Lead', { content_name: type });
   }
 
   const handleAnswer = (answer: string) => {
@@ -206,6 +246,7 @@ export default function LandingPage() {
     e.preventDefault()
     if (consent) {
       setIsVerifying(true)
+      window.fbq('track', 'SubmitApplication');
     } else {
       alert('Please provide consent to submit your information.')
     }
@@ -238,6 +279,10 @@ export default function LandingPage() {
 
       if (response.ok && data.success) {
         setIsFinalSubmitted(true)
+        window.fbq('track', 'CompleteRegistration', {
+          content_name: userType,
+          status: true
+        });
       } else {
         throw new Error(data.error || 'Unknown error occurred')
       }
@@ -280,6 +325,33 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
+      <Script
+        id="fb-pixel"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '3367216933422950');
+            fbq('track', 'PageView');
+          `,
+        }}
+      />
+      <noscript>
+        <Image
+          height="1"
+          width="1"
+          style={{ display: 'none' }}
+          src="https://www.facebook.com/tr?id=3367216933422950&ev=PageView&noscript=1"
+          alt=""
+        />
+      </noscript>
       <Image
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pexels-falling4utah-2724749-Wqoqy2VN0WoWhfNdnux6HuiDgs6nsI.jpg"
         alt="Modern white kitchen with island"
